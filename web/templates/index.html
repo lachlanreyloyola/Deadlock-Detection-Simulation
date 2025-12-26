@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deadlock Detection System</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔄 Deadlock Detection & Recovery System</h1>
+            <p>FSA-Based Concurrent System Monitor</p>
+        </header>
+
+        <div class="main-content">
+            <div class="panel">
+                <h2>Control Panel</h2>
+                <div class="controls">
+                    <button id="createSimBtn" class="btn btn-primary">Create Simulation</button>
+                    <button id="runSimBtn" class="btn btn-success" disabled>Run Simulation</button>
+                    <button id="resetBtn" class="btn btn-warning" disabled>Reset</button>
+                </div>
+                <div id="simIdDisplay" class="info-box"></div>
+            </div>
+
+            <div class="panel">
+                <h2>Processes</h2>
+                <div class="input-group">
+                    <input type="text" id="pidInput" placeholder="Process ID (e.g., P1)">
+                    <input type="number" id="priorityInput" placeholder="Priority" min="1" max="10" value="5">
+                    <button id="addProcessBtn" class="btn btn-secondary" disabled>Add Process</button>
+                </div>
+                <div id="processList" class="list-container"></div>
+            </div>
+
+            <div class="panel">
+                <h2>Resources</h2>
+                <div class="input-group">
+                    <input type="text" id="ridInput" placeholder="Resource ID (e.g., R1)">
+                    <input type="number" id="instancesInput" placeholder="Instances" min="1" value="1">
+                    <button id="addResourceBtn" class="btn btn-secondary" disabled>Add Resource</button>
+                </div>
+                <div id="resourceList" class="list-container"></div>
+            </div>
+
+            <div class="panel">
+                <h2>Resource Requests</h2>
+                <div class="input-group">
+                    <input type="text" id="reqPidInput" placeholder="Process ID">
+                    <input type="text" id="reqRidInput" placeholder="Resource ID">
+                    <button id="requestBtn" class="btn btn-secondary" disabled>Request Resource</button>
+                </div>
+                <div id="requestLog" class="log-container"></div>
+            </div>
+
+            <div class="panel full-width">
+                <h2>System State</h2>
+                <div id="systemState" class="state-display">
+                    <div class="state-item">
+                        <span class="label">System:</span>
+                        <span id="systemStateValue" class="value state-safe">Not Initialized</span>
+                    </div>
+                    <div class="state-item">
+                        <span class="label">Iteration:</span>
+                        <span id="iterationValue" class="value">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel full-width">
+                <h2>Simulation Results</h2>
+                <div id="results" class="results-container">
+                    <p class="placeholder">Run simulation to see results...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

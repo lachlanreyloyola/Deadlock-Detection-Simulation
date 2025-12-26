@@ -1,0 +1,269 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    overflow: hidden;
+}
+
+header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 30px;
+    text-align: center;
+}
+
+header h1 {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+}
+
+header p {
+    font-size: 1.1em;
+    opacity: 0.9;
+}
+
+.main-content {
+    padding: 30px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 20px;
+}
+
+.panel {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.panel.full-width {
+    grid-column: 1 / -1;
+}
+
+.panel h2 {
+    color: #333;
+    margin-bottom: 15px;
+    font-size: 1.5em;
+    border-bottom: 2px solid #667eea;
+    padding-bottom: 10px;
+}
+
+.controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: all 0.3s;
+    font-weight: 600;
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-primary {
+    background: #667eea;
+    color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+    background: #5568d3;
+}
+
+.btn-success {
+    background: #28a745;
+    color: white;
+}
+
+.btn-success:hover:not(:disabled) {
+    background: #218838;
+}
+
+.btn-warning {
+    background: #ffc107;
+    color: #333;
+}
+
+.btn-warning:hover:not(:disabled) {
+    background: #e0a800;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background: #5a6268;
+}
+
+.input-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.input-group input {
+    flex: 1;
+    padding: 10px;
+    border: 2px solid #ddd;
+    border-radius: 5px;
+    font-size: 1em;
+}
+
+.input-group input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.info-box {
+    background: #e7f3ff;
+    padding: 10px;
+    border-radius: 5px;
+    border-left: 4px solid #667eea;
+    font-family: monospace;
+}
+
+.list-container {
+    max-height: 200px;
+    overflow-y: auto;
+    background: white;
+    border-radius: 5px;
+    padding: 10px;
+}
+
+.list-item {
+    padding: 8px;
+    margin: 5px 0;
+    background: #f8f9fa;
+    border-left: 3px solid #667eea;
+    border-radius: 3px;
+}
+
+.state-display {
+    display: flex;
+    gap: 30px;
+    padding: 20px;
+    background: white;
+    border-radius: 5px;
+}
+
+.state-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.state-item .label {
+    font-weight: 600;
+    color: #666;
+}
+
+.state-item .value {
+    font-size: 1.2em;
+    font-weight: bold;
+    padding: 5px 15px;
+    border-radius: 20px;
+}
+
+.state-safe {
+    background: #d4edda;
+    color: #155724;
+}
+
+.state-deadlock {
+    background: #f8d7da;
+    color: #721c24;
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.state-recovering {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.log-container {
+    max-height: 150px;
+    overflow-y: auto;
+    background: white;
+    padding: 10px;
+    border-radius: 5px;
+    font-family: monospace;
+    font-size: 0.9em;
+}
+
+.log-entry {
+    padding: 5px;
+    margin: 2px 0;
+    border-left: 3px solid #28a745;
+}
+
+.log-entry.error {
+    border-left-color: #dc3545;
+    color: #721c24;
+}
+
+.results-container {
+    background: white;
+    padding: 20px;
+    border-radius: 5px;
+}
+
+.results-container .placeholder {
+    color: #999;
+    text-align: center;
+    padding: 40px;
+}
+
+.metric {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    margin: 5px 0;
+    background: #f8f9fa;
+    border-radius: 5px;
+}
+
+.metric .label {
+    font-weight: 600;
+    color: #666;
+}
+
+.metric .value {
+    font-weight: bold;
+    color: #667eea;
+}
+
+.process-state-Ready { color: #17a2b8; }
+.process-state-Running { color: #28a745; }
+.process-state-Blocked { color: #ffc107; }
+.process-state-Deadlocked { color: #dc3545; }
+.process-state-Terminated { color: #6c757d; }
