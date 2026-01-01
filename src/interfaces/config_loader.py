@@ -11,12 +11,22 @@ logger = logging.getLogger(__name__)
 
 
 def load_scenario(filename: str, config: SimulationConfig = None) -> SimulationController:
-    """Load scenario from JSON or YAML file"""
+    """
+    Load scenario from JSON or YAML file
+    
+    Args:
+        filename: Path to configuration file
+        config: Optional SimulationConfig (will be updated from file if present)
+        
+    Returns:
+        Configured SimulationController
+    """
     filepath = Path(filename)
     
     if not filepath.exists():
         raise FileNotFoundError(f"Configuration file not found: {filename}")
     
+    # Load file based on extension
     with open(filepath, 'r') as f:
         if filepath.suffix == '.json':
             data = json.load(f)
@@ -27,6 +37,7 @@ def load_scenario(filename: str, config: SimulationConfig = None) -> SimulationC
     
     logger.info(f"Loaded scenario: {data.get('scenario_name', 'Unnamed')}")
     
+    # Update config from file
     if config is None:
         config = SimulationConfig()
     
@@ -36,9 +47,13 @@ def load_scenario(filename: str, config: SimulationConfig = None) -> SimulationC
         config.detection_interval = data['detection_interval']
     if 'recovery_strategy' in data:
         config.recovery_strategy = data['recovery_strategy']
+    if 'cpu_threshold' in data:
+        config.cpu_threshold = data['cpu_threshold']
     
+    # Create controller
     controller = SimulationController(config)
     
+    # Add processes
     for proc_data in data.get('processes', []):
         controller.add_process(
             pid=proc_data['pid'],
@@ -46,6 +61,7 @@ def load_scenario(filename: str, config: SimulationConfig = None) -> SimulationC
             execution_time=proc_data.get('execution_time', 100)
         )
     
+    # Add resources
     for res_data in data.get('resources', []):
         controller.add_resource(
             rid=res_data['rid'],
@@ -53,17 +69,19 @@ def load_scenario(filename: str, config: SimulationConfig = None) -> SimulationC
             resource_type=res_data.get('type', 'Generic')
         )
     
+    # Initial allocations
     for alloc in data.get('initial_allocations', []):
         try:
             controller.request_resource(alloc['process'], alloc['resource'])
         except Exception as e:
-            logger.warning(f"Failed to allocate: {e}")
+            logger.warning(f"Failed to allocate {alloc['resource']} to {alloc['process']}: {e}")
     
+    # Resource requests
     for req in data.get('resource_requests', []):
         try:
             controller.request_resource(req['process'], req['resource'])
         except Exception as e:
-            logger.warning(f"Failed to request: {e}")
+            logger.warning(f"Failed to request {req['resource']} for {req['process']}: {e}")
     
     logger.info(f"Scenario loaded: {len(controller.processes)} processes, {len(controller.resources)} resources")
     return controller
@@ -74,6 +92,7 @@ def create_example_scenarios():
     scenarios_dir = Path('scenarios')
     scenarios_dir.mkdir(exist_ok=True)
     
+    # Simple deadlock scenario
     simple_deadlock = {
         "scenario_name": "Simple Two-Process Deadlock",
         "detection_strategy": "periodic",
@@ -100,6 +119,7 @@ def create_example_scenarios():
     with open(scenarios_dir / 'simple_deadlock.json', 'w') as f:
         json.dump(simple_deadlock, f, indent=2)
     
+    # Complex deadlock scenario
     complex_deadlock = {
         "scenario_name": "Three-Process Circular Deadlock",
         "detection_strategy": "periodic",
@@ -130,6 +150,7 @@ def create_example_scenarios():
     with open(scenarios_dir / 'complex_deadlock.json', 'w') as f:
         json.dump(complex_deadlock, f, indent=2)
     
+    # No deadlock scenario
     no_deadlock = {
         "scenario_name": "Safe System - No Deadlock",
         "detection_strategy": "periodic",

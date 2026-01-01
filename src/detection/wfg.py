@@ -10,7 +10,12 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class WaitForGraph:
-    """Represents a Wait-For Graph for deadlock detection"""
+    """
+    Represents a Wait-For Graph for deadlock detection
+    
+    Nodes: Processes
+    Edges: (P1, P2) means P1 waits for a resource held by P2
+    """
     nodes: Set[str] = field(default_factory=set)
     edges: List[Tuple[str, str]] = field(default_factory=list)
     adjacency_list: Dict[str, List[str]] = field(default_factory=dict)
@@ -22,7 +27,10 @@ class WaitForGraph:
             self.adjacency_list[process_id] = []
     
     def add_edge(self, from_process: str, to_process: str):
-        """Add a directed edge"""
+        """
+        Add a directed edge from from_process to to_process
+        Meaning: from_process waits for to_process
+        """
         if from_process not in self.nodes:
             self.add_node(from_process)
         if to_process not in self.nodes:
@@ -55,25 +63,40 @@ class WaitForGraph:
 
 
 def build_wait_for_graph(processes: Dict, resources: Dict) -> WaitForGraph:
-    """Build Wait-For Graph from current system state"""
+    """
+    Build Wait-For Graph from current system state
+    
+    Args:
+        processes: Dictionary of Process objects {pid: Process}
+        resources: Dictionary of Resource objects {rid: Resource}
+        
+    Returns:
+        WaitForGraph object
+    """
     wfg = WaitForGraph()
     
+    # Add all active processes as nodes
     for pid, process in processes.items():
         if process.state not in ['Terminated']:
             wfg.add_node(pid)
     
+    # Build edges based on resource dependencies
     for requesting_pid, requesting_process in processes.items():
+        # Skip if process is not waiting or deadlocked
         if requesting_process.state not in ['Blocked', 'Deadlocked']:
             continue
         
+        # Check each requested resource
         for requested_rid in requesting_process.requested_resources:
             if requested_rid not in resources:
                 continue
             
             resource = resources[requested_rid]
             
+            # Find which processes hold this resource
             for holding_pid in resource.allocated_to:
                 if holding_pid in processes and holding_pid != requesting_pid:
+                    # Add edge: requesting_pid waits for holding_pid
                     wfg.add_edge(requesting_pid, holding_pid)
                     logger.debug(
                         f"WFG edge: {requesting_pid} waits for {holding_pid} "

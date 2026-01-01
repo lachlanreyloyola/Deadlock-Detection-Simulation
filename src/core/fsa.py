@@ -27,6 +27,15 @@ class Transition:
 class FiniteStateAutomaton:
     """
     Generic Finite State Automaton implementation
+    
+    Attributes:
+        name: Identifier for this FSA
+        states: Set of valid states
+        alphabet: Set of valid input symbols
+        current_state: Current state of the automaton
+        transition_function: Transition function as dictionary
+        initial_state: Starting state
+        accepting_states: Set of final/accepting states
     """
     
     def __init__(
@@ -46,6 +55,8 @@ class FiniteStateAutomaton:
         self.current_state = initial_state
         self.accepting_states = accepting_states or set()
         self.transition_history = []
+        
+        # Validate FSA definition
         self._validate()
     
     def _validate(self):
@@ -55,11 +66,34 @@ class FiniteStateAutomaton:
         
         if not self.accepting_states.issubset(self.states):
             raise FSAException("Accepting states must be subset of states")
+        
+        # Validate transition function
+        for (state, symbol), next_state in self.transition_function.items():
+            if state not in self.states:
+                raise FSAException(f"Invalid state in transition: {state}")
+            if symbol not in self.alphabet:
+                raise FSAException(f"Invalid symbol in transition: {symbol}")
+            if next_state not in self.states:
+                raise FSAException(f"Invalid next state in transition: {next_state}")
     
     def transition(self, input_symbol: str, metadata: Dict[str, Any] = None) -> str:
-        """Execute a state transition"""
+        """
+        Execute a state transition
+        
+        Args:
+            input_symbol: Input event triggering transition
+            metadata: Optional additional information
+            
+        Returns:
+            New state after transition
+            
+        Raises:
+            FSAException: If transition is invalid
+        """
         if input_symbol not in self.alphabet:
-            raise FSAException(f"Invalid input symbol '{input_symbol}' for FSA '{self.name}'")
+            raise FSAException(
+                f"Invalid input symbol '{input_symbol}' for FSA '{self.name}'"
+            )
         
         transition_key = (self.current_state, input_symbol)
         
@@ -71,6 +105,7 @@ class FiniteStateAutomaton:
         
         next_state = self.transition_function[transition_key]
         
+        # Record transition
         trans = Transition(
             from_state=self.current_state,
             to_state=next_state,
@@ -80,8 +115,11 @@ class FiniteStateAutomaton:
         )
         self.transition_history.append(trans)
         
-        logger.debug(f"FSA '{self.name}': {self.current_state} --({input_symbol})--> {next_state}")
+        logger.debug(
+            f"FSA '{self.name}': {self.current_state} --({input_symbol})--> {next_state}"
+        )
         
+        # Update state
         self.current_state = next_state
         return next_state
     
@@ -101,6 +139,8 @@ class FiniteStateAutomaton:
     
     def __repr__(self):
         return (
-            f"FSA(name='{self.name}', current_state='{self.current_state}', "
-            f"states={len(self.states)}, transitions={len(self.transition_history)})"
+            f"FSA(name='{self.name}', "
+            f"current_state='{self.current_state}', "
+            f"states={len(self.states)}, "
+            f"transitions={len(self.transition_history)})"
         )

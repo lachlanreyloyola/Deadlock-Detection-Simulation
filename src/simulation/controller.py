@@ -27,9 +27,9 @@ class DetectionStrategy(Enum):
 class SimulationConfig:
     """Simulation configuration"""
     detection_strategy: str = "periodic"
-    detection_interval: float = 1.0
+    detection_interval: float = 1.0  # seconds
     recovery_strategy: str = "cost"
-    cpu_threshold: float = 20.0
+    cpu_threshold: float = 20.0  # percent
     max_iterations: int = 100
 
 
@@ -61,18 +61,22 @@ class SimulationMetrics:
 
 
 class SimulationController:
-    """Main simulation orchestration engine"""
+    """
+    Main simulation orchestration engine
+    """
     
     def __init__(self, config: SimulationConfig = None):
         """Initialize simulation controller"""
         self.config = config or SimulationConfig()
         
+        # Core components
         self.processes: Dict[str, Process] = {}
         self.resources: Dict[str, Resource] = {}
         self.system_state = SystemState()
         self.detector = DeadlockDetector()
         self.recovery = RecoveryModule(strategy=self.config.recovery_strategy)
         
+        # Simulation state
         self.metrics = SimulationMetrics()
         self.iteration = 0
         self.last_detection_time = 0.0
@@ -109,12 +113,15 @@ class SimulationController:
         process = self.processes[pid]
         resource = self.resources[rid]
         
+        # Process FSA: transition to requesting
         if process.state == 'Ready':
             process.transition('start')
         
         process.request_resource(rid)
         
+        # Try to allocate
         if resource.is_available():
+            # Allocation successful
             resource.allocate(pid)
             process.allocate_resource(rid)
             process.transition('allocate')
@@ -122,12 +129,14 @@ class SimulationController:
             self._log_event(f"Process {pid} allocated resource {rid}")
             logger.info(f"Allocated {rid} to {pid}")
         else:
+            # Block process
             process.transition('deny')
             resource.add_to_wait_queue(pid)
             
             self._log_event(f"Process {pid} blocked waiting for {rid}")
             logger.info(f"Process {pid} blocked on {rid}")
             
+            # Trigger immediate detection if configured
             if self.config.detection_strategy == DetectionStrategy.IMMEDIATE.value:
                 self._run_detection()
     
@@ -145,9 +154,26 @@ class SimulationController:
             process.release_resource(rid)
             self._log_event(f"Process {pid} released resource {rid}")
             logger.info(f"Process {pid} released {rid}")
+            
+            # Try to unblock waiting processes
+            if resource.wait_queue:
+                waiting_pid = resource.wait_queue[0]
+                if waiting_pid in self.processes:
+                    waiting_process = self.processes[waiting_pid]
+                    resource.allocate(waiting_pid)
+                    waiting_process.allocate_resource(rid)
+                    waiting_process.transition('allocate')
+                    resource.remove_from_wait_queue(waiting_pid)
+                    
+                    self._log_event(f"Unblocked process {waiting_pid}, allocated {rid}")
     
     def run_simulation(self, steps: int = None):
-        """Run the simulation"""
+        """
+        Run the simulation
+        
+        Args:
+            steps: Number of iterations (None for run until complete)
+        """
         self.running = True
         self.iteration = 0
         max_steps = steps or self.config.max_iterations
@@ -160,12 +186,18 @@ class SimulationController:
             self.iteration += 1
             current_time = time.time()
             
+            # Check if detection should run
             if self._should_run_detection(current_time):
                 self._run_detection()
             
-            if self.config.detection_strategy == DetectionStrategy.PERIODIC.value:
-                time.sleep(0.1)
+            # Simulate process execution (simplified)
+            # In a real system, processes would actually execute here
             
+            # Small delay for periodic detection
+            if self.config.detection_strategy == DetectionStrategy.PERIODIC.value:
+                time.sleep(0.1)  # 100ms
+            
+            # Check termination condition
             if self._all_processes_terminated():
                 self.running = False
                 logger.info("All processes terminated - simulation complete")
@@ -179,13 +211,14 @@ class SimulationController:
         strategy = self.config.detection_strategy
         
         if strategy == DetectionStrategy.IMMEDIATE.value:
-            return False
+            return False  # Already triggered on block
         
         elif strategy == DetectionStrategy.PERIODIC.value:
             elapsed = current_time - self.last_detection_time
             return elapsed >= self.config.detection_interval
         
         elif strategy == DetectionStrategy.CPU_TRIGGERED.value:
+            # Simplified: check if any processes are blocked
             blocked_count = sum(
                 1 for p in self.processes.values() 
                 if p.state in ['Blocked', 'Deadlocked']
@@ -200,7 +233,7 @@ class SimulationController:
         
         result = self.detector.detect(self.processes, self.resources)
         self.metrics.total_detections += 1
-        self.metrics.total_detection_time += result.detection_latency / 1000.0
+        self.metrics.total_detection_time += result.detection_latency / 1000.0  # Convert to seconds
         
         self._log_event(
             f"Detection run: {'DEADLOCK FOUND' if result.deadlock_detected else 'SAFE'}"
@@ -208,8 +241,11 @@ class SimulationController:
         
         if result.deadlock_detected:
             self.metrics.deadlocks_found += 1
+            
+            # Update system FSA
             self.system_state.transition('cycle_detected')
             
+            # Update process FSAs
             for pid in result.deadlocked_processes:
                 if pid in self.processes:
                     process = self.processes[pid]
@@ -219,10 +255,12 @@ class SimulationController:
             logger.warning(f"DEADLOCK DETECTED: {result.deadlocked_processes}")
             self._log_event(f"Deadlocked processes: {result.deadlocked_processes}")
             
+            # Initiate recovery
             self._run_recovery(result.deadlocked_processes)
     
     def _run_recovery(self, deadlocked_pids: set):
         """Run deadlock recovery"""
+        # Update system FSA
         self.system_state.transition('recovery_start')
         
         recovery_result = self.recovery.recover(
@@ -238,13 +276,21 @@ class SimulationController:
             f"Recovery: terminated {recovery_result.terminated_count} victim(s): "
             f"{recovery_result.victims}"
         )
+        self._log_event(
+            f"Recovery: unblocked {len(recovery_result.unblocked_processes)} process(es)"
+        )
         
+        # Update system FSA
         self.system_state.transition('recovery_complete')
+        
         logger.info(f"Recovery complete: {recovery_result.to_dict()}")
     
     def _all_processes_terminated(self) -> bool:
         """Check if all processes are terminated"""
-        return all(p.state == 'Terminated' for p in self.processes.values())
+        return all(
+            p.state == 'Terminated' 
+            for p in self.processes.values()
+        )
     
     def _log_event(self, message: str):
         """Log a simulation event"""
@@ -266,8 +312,14 @@ class SimulationController:
                 'system_final_state': self.system_state.state
             },
             'metrics': self.metrics.to_dict(),
-            'processes': {pid: p.to_dict() for pid, p in self.processes.items()},
-            'resources': {rid: r.to_dict() for rid, r in self.resources.items()},
+            'processes': {
+                pid: p.to_dict() 
+                for pid, p in self.processes.items()
+            },
+            'resources': {
+                rid: r.to_dict() 
+                for rid, r in self.resources.items()
+            },
             'log': self.simulation_log
         }
     

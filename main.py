@@ -58,7 +58,7 @@ Examples:
     if args.generate_scenarios:
         logger.info("Generating example scenarios...")
         create_example_scenarios()
-        print("✅ Example scenarios created in 'scenarios/' directory")
+        print("Example scenarios created in 'scenarios/' directory")
         return 0
     
     if args.cli:
@@ -90,7 +90,7 @@ Examples:
     
     if args.web:
         logger.info(f"Starting web server on {args.host}:{args.port}...")
-        print(f"\n🌐 Access web interface at: http://localhost:{args.port}\n")
+        print(f"\nAccess web interface at: http://localhost:{args.port}\n")
         start_server(host=args.host, port=args.port, debug=args.debug)
         return 0
     

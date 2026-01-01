@@ -9,7 +9,17 @@ from .fsa import FiniteStateAutomaton
 
 @dataclass
 class Process:
-    """Represents a process in the system"""
+    """
+    Represents a process in the system
+    
+    Attributes:
+        pid: Process identifier
+        priority: Priority level (1=highest, 10=lowest)
+        execution_time: Expected execution time in milliseconds
+        held_resources: Set of currently held resources
+        requested_resources: Queue of requested resources
+        state: Current FSA state
+    """
     pid: str
     priority: int = 5
     execution_time: int = 100
@@ -17,10 +27,11 @@ class Process:
     requested_resources: List[str] = field(default_factory=list)
     creation_time: float = field(default_factory=time.time)
     blocked_time: float = 0
-    victim_count: int = 0
+    victim_count: int = 0  # Times terminated as victim
     
     def __post_init__(self):
         """Initialize Process FSA"""
+        # Define Process FSA
         states = {'Ready', 'Running', 'Blocked', 'Deadlocked', 'Terminated'}
         
         alphabet = {
@@ -28,6 +39,7 @@ class Process:
             'detect_cycle', 'terminate', 'resume'
         }
         
+        # Transition function: (state, input) -> next_state
         transitions = {
             ('Ready', 'start'): 'Running',
             ('Running', 'request'): 'Running',
@@ -87,7 +99,8 @@ class Process:
     def __repr__(self):
         return (
             f"Process(pid='{self.pid}', state='{self.state}', "
-            f"priority={self.priority}, held={self.held_resources})"
+            f"priority={self.priority}, held={self.held_resources}, "
+            f"requested={self.requested_resources})"
         )
     
     def to_dict(self) -> dict:

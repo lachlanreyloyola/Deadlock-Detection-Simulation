@@ -36,7 +36,16 @@ class VictimSelector:
     
     @staticmethod
     def select_by_priority(processes: Dict, deadlocked_pids: Set[str]) -> str:
-        """Select victim with lowest priority (highest priority number)"""
+        """
+        Select victim with lowest priority (highest priority number)
+        
+        Args:
+            processes: All processes
+            deadlocked_pids: Set of deadlocked process IDs
+            
+        Returns:
+            Process ID of selected victim
+        """
         victim = None
         lowest_priority = -1
         
@@ -51,7 +60,12 @@ class VictimSelector:
     
     @staticmethod
     def select_by_cost(processes: Dict, deadlocked_pids: Set[str]) -> str:
-        """Select victim with minimum termination cost"""
+        """
+        Select victim with minimum termination cost
+        
+        Cost = resources_held * 10 + execution_time * 1 + progress * 5 
+               + (10 - priority) * 20 - victim_count * 50
+        """
         RESOURCE_WEIGHT = 10
         EXECUTION_WEIGHT = 1
         PROGRESS_WEIGHT = 5
@@ -75,7 +89,12 @@ class VictimSelector:
                 priority_cost - starvation_penalty
             )
             
-            logger.debug(f"Cost for {pid}: total={total_cost}")
+            logger.debug(
+                f"Cost for {pid}: resources={resources_cost}, "
+                f"execution={execution_cost}, progress={progress_cost}, "
+                f"priority={priority_cost}, starvation={starvation_penalty}, "
+                f"total={total_cost}"
+            )
             
             if total_cost < min_cost:
                 min_cost = total_cost
@@ -113,12 +132,17 @@ class VictimSelector:
                 min_resources = resource_count
                 victim = pid
         
-        logger.info(f"Victim selected by resource count: {victim} (resources={min_resources})")
+        logger.info(
+            f"Victim selected by resource count: {victim} "
+            f"(resources={min_resources})"
+        )
         return victim
 
 
 class RecoveryModule:
-    """Handles deadlock recovery through process termination"""
+    """
+    Handles deadlock recovery through process termination
+    """
     
     SELECTION_STRATEGIES = {
         'priority': VictimSelector.select_by_priority,
@@ -128,7 +152,13 @@ class RecoveryModule:
     }
     
     def __init__(self, strategy: str = 'cost'):
-        """Initialize recovery module"""
+        """
+        Initialize recovery module
+        
+        Args:
+            strategy: Victim selection strategy 
+                     ('priority', 'cost', 'time', 'resources')
+        """
         if strategy not in self.SELECTION_STRATEGIES:
             raise ValueError(f"Invalid strategy: {strategy}")
         
@@ -142,7 +172,17 @@ class RecoveryModule:
         resources: Dict, 
         deadlocked_pids: Set[str]
     ) -> RecoveryResult:
-        """Recover from deadlock by terminating victim process(es)"""
+        """
+        Recover from deadlock by terminating victim process(es)
+        
+        Args:
+            processes: All processes
+            resources: All resources
+            deadlocked_pids: Set of deadlocked process IDs
+            
+        Returns:
+            RecoveryResult object
+        """
         start_time = time.time()
         self.recovery_count += 1
         
@@ -152,30 +192,38 @@ class RecoveryModule:
         
         logger.info(f"Starting recovery for deadlock involving: {deadlocked_pids}")
         
+        # Iteratively select and terminate victims until deadlock is broken
         remaining_deadlocked = deadlocked_pids.copy()
         
         while remaining_deadlocked:
+            # Select victim
             victim_pid = self.selector(processes, remaining_deadlocked)
             victims.append(victim_pid)
             remaining_deadlocked.remove(victim_pid)
             
-            victim_resources = self._terminate_victim(victim_pid, processes, resources)
+            # Terminate victim and release resources
+            victim_resources = self._terminate_victim(
+                victim_pid, processes, resources
+            )
             resources_released.update(victim_resources)
             
+            # Check if deadlock is broken
             if self._would_break_cycle(victim_pid, remaining_deadlocked, processes, resources):
                 logger.info(f"Deadlock broken after terminating {len(victims)} victim(s)")
                 break
         
+        # Unblock remaining processes
         for pid in deadlocked_pids:
             if pid not in victims:
                 process = processes[pid]
+                # Try to allocate requested resources
                 if self._try_allocate_resources(process, resources):
                     process.transition('allocate')
                     unblocked_processes.add(pid)
                 else:
-                    process.transition('resume')
+                    process.transition('resume')  # Back to Blocked state
         
-        recovery_time = (time.time() - start_time) * 1000
+        recovery_time = (time.time() - start_time) * 1000  # ms
         
         result = RecoveryResult(
             success=True,
@@ -186,15 +234,28 @@ class RecoveryModule:
             unblocked_processes=unblocked_processes
         )
         
-        logger.info(f"Recovery complete: {len(victims)} victim(s) terminated")
+        logger.info(
+            f"Recovery complete: {len(victims)} victim(s) terminated, "
+            f"{len(unblocked_processes)} process(es) unblocked, "
+            f"time={recovery_time:.2f}ms"
+        )
+        
         return result
     
-    def _terminate_victim(self, victim_pid: str, processes: Dict, resources: Dict) -> Set[str]:
+    def _terminate_victim(
+        self, 
+        victim_pid: str, 
+        processes: Dict, 
+        resources: Dict
+    ) -> Set[str]:
         """Terminate victim process and release its resources"""
         victim = processes[victim_pid]
+        
+        # Transition to Terminated state
         victim.transition('terminate')
         victim.victim_count += 1
         
+        # Release all held resources
         released_resources = victim.release_all_resources()
         
         for rid in released_resources:
@@ -206,9 +267,16 @@ class RecoveryModule:
         logger.info(f"Terminated victim {victim_pid}, released {len(released_resources)} resources")
         return released_resources
     
-    def _would_break_cycle(self, victim_pid: str, remaining: Set[str], 
-                          processes: Dict, resources: Dict) -> bool:
+    def _would_break_cycle(
+        self, 
+        victim_pid: str, 
+        remaining: Set[str], 
+        processes: Dict, 
+        resources: Dict
+    ) -> bool:
         """Check if removing victim would break the deadlock cycle"""
+        # Simplified check: assume single victim breaks cycle for now
+        # In complex scenarios, might need to rebuild WFG and check
         return len(remaining) == 0 or len(remaining) < len(processes) / 2
     
     def _try_allocate_resources(self, process, resources: Dict) -> bool:

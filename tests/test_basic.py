@@ -4,6 +4,7 @@ Basic tests for deadlock detection system
 import sys
 from pathlib import Path
 
+# Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
 
 from src.core.process import Process
@@ -36,16 +37,21 @@ def test_simple_deadlock_detection():
     config = SimulationConfig(detection_strategy='immediate')
     controller = SimulationController(config)
     
+    # Create processes
     controller.add_process("P1", priority=5)
     controller.add_process("P2", priority=5)
+    
+    # Create resources
     controller.add_resource("R1", instances=1)
     controller.add_resource("R2", instances=1)
     
-    controller.request_resource("P1", "R1")
-    controller.request_resource("P2", "R2")
-    controller.request_resource("P1", "R2")
-    controller.request_resource("P2", "R1")
+    # Create deadlock: P1 holds R1 wants R2, P2 holds R2 wants R1
+    controller.request_resource("P1", "R1")  # Allocated
+    controller.request_resource("P2", "R2")  # Allocated
+    controller.request_resource("P1", "R2")  # Blocked
+    controller.request_resource("P2", "R1")  # Blocked - deadlock!
     
+    # Run detection
     result = controller.detector.detect(controller.processes, controller.resources)
     
     assert result.deadlock_detected == True
@@ -60,10 +66,10 @@ def test_no_deadlock_scenario():
     
     controller.add_process("P1", priority=5)
     controller.add_process("P2", priority=5)
-    controller.add_resource("R1", instances=2)
+    controller.add_resource("R1", instances=2)  # 2 instances
     
     controller.request_resource("P1", "R1")
-    controller.request_resource("P2", "R1")
+    controller.request_resource("P2", "R1")  # Both can get resource
     
     result = controller.detector.detect(controller.processes, controller.resources)
     
@@ -77,4 +83,4 @@ if __name__ == '__main__':
     test_resource_creation()
     test_simple_deadlock_detection()
     test_no_deadlock_scenario()
-    print("\n✅ All tests passed!")
+    print("\nAll tests passed!")

@@ -45,7 +45,7 @@ class CLI:
                 print("\nThank you for using Deadlock Detection System!")
                 break
             else:
-                print("\n❌ Invalid choice. Please try again.")
+                print("\nInvalid choice. Please try again.")
     
     def _print_menu(self):
         """Print main menu"""
@@ -103,7 +103,7 @@ class CLI:
                 self.controller.request_resource(pid, rid)
                 print(f"  ✓ Allocated {rid} to {pid}")
             except Exception as e:
-                print(f"  ❌ Error: {e}")
+                print(f"  Error: {e}")
         
         print("\n--- Define Resource Requests ---")
         while True:
@@ -118,10 +118,10 @@ class CLI:
                 self.controller.request_resource(pid, rid)
                 print(f"  ✓ {pid} requested {rid}")
             except Exception as e:
-                print(f"  ❌ Error: {e}")
+                print(f"  Error: {e}")
         
-        print("\n✅ Scenario defined successfully!")
-    
+        print("\nScenario defined successfully!")
+
     def _load_scenario(self):
         """Load scenario from file"""
         print("\n--- Load Scenario from File ---")
@@ -130,9 +130,9 @@ class CLI:
         try:
             from .config_loader import load_scenario
             self.controller = load_scenario(filename, self.config)
-            print(f"✅ Scenario loaded from {filename}")
+            print(f"Scenario loaded from {filename}")
         except Exception as e:
-            print(f"❌ Error loading scenario: {e}")
+            print(f"Error loading scenario: {e}")
     
     def _configure_detection(self):
         """Configure detection settings"""
@@ -146,7 +146,11 @@ class CLI:
         print("   [3] CPU-Triggered (low CPU usage)")
         strategy_choice = input("Choose strategy (1-3): ").strip()
         
-        strategy_map = {'1': 'immediate', '2': 'periodic', '3': 'cpu_triggered'}
+        strategy_map = {
+            '1': 'immediate',
+            '2': 'periodic',
+            '3': 'cpu_triggered'
+        }
         self.config.detection_strategy = strategy_map.get(strategy_choice, 'periodic')
         
         if self.config.detection_strategy == 'periodic':
@@ -160,17 +164,22 @@ class CLI:
         print("   [4] Resource-based")
         recovery_choice = input("Choose strategy (1-4): ").strip()
         
-        recovery_map = {'1': 'priority', '2': 'cost', '3': 'time', '4': 'resources'}
+        recovery_map = {
+            '1': 'priority',
+            '2': 'cost',
+            '3': 'time',
+            '4': 'resources'
+        }
         self.config.recovery_strategy = recovery_map.get(recovery_choice, 'cost')
         
-        print("\n✅ Configuration updated:")
+        print("\nConfiguration updated:")
         print(f"   Detection: {self.config.detection_strategy}")
         print(f"   Recovery: {self.config.recovery_strategy}")
     
     def _run_simulation(self):
         """Run complete simulation"""
         if not self.controller:
-            print("\n❌ Please define or load a scenario first!")
+            print("\nPlease define or load a scenario first!")
             return
         
         print("\n" + "=" * 60)
@@ -180,7 +189,7 @@ class CLI:
         steps = self._get_int_input("Max iterations (0 for unlimited): ", 0, 1000)
         steps = steps if steps > 0 else None
         
-        print("\n🚀 Starting simulation...")
+        print("\nStarting simulation...")
         report = self.controller.run_simulation(steps)
         
         print("\n" + "=" * 60)
@@ -191,7 +200,7 @@ class CLI:
     def _view_results(self):
         """View current results"""
         if not self.controller:
-            print("\n❌ No simulation data available!")
+            print("\nNo simulation data available!")
             return
         
         state = self.controller.get_current_state()

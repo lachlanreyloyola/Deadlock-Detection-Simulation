@@ -91,7 +91,7 @@ async function createSimulation() {
         elements.runSimBtn.disabled = false;
         elements.resetBtn.disabled = false;
         
-        logMessage(`✅ Simulation created: ${currentSimId}`);
+        logMessage(`Simulation created: ${currentSimId}`);
         await updateSystemState();
         
     } catch (error) {
@@ -134,7 +134,7 @@ async function addProcess() {
         if (data.status === 'success') {
             displayProcess(data.process);
             elements.pidInput.value = '';
-            logMessage(`✅ Added process: ${pid} (Priority: ${priority})`);
+            logMessage(`Added process: ${pid} (Priority: ${priority})`);
         }
         
     } catch (error) {
@@ -177,7 +177,7 @@ async function addResource() {
         if (data.status === 'success') {
             displayResource(data.resource);
             elements.ridInput.value = '';
-            logMessage(`✅ Added resource: ${rid} (Instances: ${instances})`);
+            logMessage(`Added resource: ${rid} (Instances: ${instances})`);
         }
         
     } catch (error) {
@@ -229,7 +229,7 @@ async function requestResource() {
         
     } catch (error) {
         console.error('Error requesting resource:', error);
-        logMessage(`❌ Error: ${error.message}`, true);
+        logMessage(`Error: ${error.message}`, true);
     }
 }
 
@@ -262,7 +262,7 @@ async function runSimulation() {
         if (data.status === 'complete') {
             displayResults(data.report);
             await updateSystemState();
-            logMessage('🚀 Simulation completed successfully');
+            logMessage('Simulation completed successfully');
         }
         
     } catch (error) {
@@ -299,7 +299,7 @@ async function resetSimulation() {
         elements.requestLog.innerHTML = '';
         elements.results.innerHTML = '<p class="placeholder">Run simulation to see results...</p>';
         
-        logMessage('🔄 Simulation reset');
+        logMessage('Simulation reset');
         await updateSystemState();
         
     } catch (error) {
@@ -407,7 +407,7 @@ function displayResults(report) {
     const summary = report.summary;
     
     let resultsHTML = `
-        <h3>📊 Summary</h3>
+        <h3>Summary</h3>
         <div class="metric">
             <span class="label">Total Iterations:</span>
             <span class="value">${summary.total_iterations}</span>
@@ -425,7 +425,7 @@ function displayResults(report) {
             <span class="value">${summary.system_final_state}</span>
         </div>
         
-        <h3>📈 Performance Metrics</h3>
+        <h3>Performance Metrics</h3>
         <div class="metric">
             <span class="label">Detections Run:</span>
             <span class="value">${metrics.total_detections}</span>
@@ -454,7 +454,7 @@ function displayResults(report) {
     }
     
     // Add process details
-    resultsHTML += `<h3>🔍 Process Details</h3>`;
+    resultsHTML += `<h3>Process Details</h3>`;
     for (const [pid, proc] of Object.entries(report.processes)) {
         const stateClass = `process-state-${proc.state}`;
         resultsHTML += `
@@ -466,7 +466,7 @@ function displayResults(report) {
     }
     
     // Add resource details
-    resultsHTML += `<h3>💾 Resource Details</h3>`;
+    resultsHTML += `<h3>Resource Details</h3>`;
     for (const [rid, res] of Object.entries(report.resources)) {
         resultsHTML += `
             <div class="metric">
@@ -504,11 +504,11 @@ async function checkServerConnection() {
     try {
         const response = await fetch(`${API_BASE}/health`);
         if (response.ok) {
-            console.log('✅ Server connection established');
+            console.log('Server connection established');
             return true;
         }
     } catch (error) {
-        console.error('❌ Server not reachable:', error);
+        console.error('Server not reachable:', error);
         alert('Cannot connect to server. Please make sure the Flask server is running:\npython main.py --web');
         return false;
     }
@@ -518,7 +518,7 @@ async function checkServerConnection() {
  * Initialize the application
  */
 async function initializeApp() {
-    console.log('🚀 Initializing Deadlock Detection System...');
+    console.log('Initializing Deadlock Detection System...');
     
     // Check server connection
     const serverReady = await checkServerConnection();
@@ -526,10 +526,10 @@ async function initializeApp() {
     if (serverReady) {
         // Initialize event listeners
         initializeEventListeners();
-        console.log('✅ Application initialized successfully');
-        logMessage('🎯 System ready. Click "Create Simulation" to begin.');
+        console.log('Application initialized successfully');
+        logMessage('System ready. Click "Create Simulation" to begin.');
     } else {
-        console.error('❌ Application initialization failed');
+        console.error('Application initialization failed');
     }
 }
 
@@ -582,4 +582,4 @@ window.deadlockSystem = {
     currentSimId: () => currentSimId
 };
 
-console.log('💡 Tip: Access system functions via window.deadlockSystem in console');
+console.log('Tip: Access system functions via window.deadlockSystem in console');

@@ -9,7 +9,17 @@ from .fsa import FiniteStateAutomaton
 
 @dataclass
 class Resource:
-    """Represents a system resource"""
+    """
+    Represents a system resource
+    
+    Attributes:
+        rid: Resource identifier
+        total_instances: Total number of instances
+        available_instances: Currently available instances
+        resource_type: Type of resource (CPU, Memory, File, etc.)
+        allocated_to: Set of processes holding this resource
+        wait_queue: Queue of processes waiting for this resource
+    """
     rid: str
     total_instances: int = 1
     resource_type: str = "Generic"
@@ -21,6 +31,7 @@ class Resource:
         """Initialize Resource FSA"""
         self.available_instances = self.total_instances
         
+        # Define Resource FSA (simplified for single-instance)
         states = {'Free', 'Allocated'}
         alphabet = {'allocate', 'release'}
         
@@ -47,26 +58,38 @@ class Resource:
         return self.available_instances > 0
     
     def allocate(self, process_id: str) -> bool:
-        """Allocate resource to process"""
+        """
+        Allocate resource to process
+        
+        Returns:
+            True if allocation successful, False otherwise
+        """
         if not self.is_available():
             return False
         
         self.available_instances -= 1
         self.allocated_to.add(process_id)
         
+        # Update FSA if transitioning from Free to Allocated
         if self.available_instances == 0 and self.fsa.current_state == 'Free':
             self.fsa.transition('allocate')
         
         return True
     
     def release(self, process_id: str) -> bool:
-        """Release resource from process"""
+        """
+        Release resource from process
+        
+        Returns:
+            True if release successful, False otherwise
+        """
         if process_id not in self.allocated_to:
             return False
         
         self.allocated_to.remove(process_id)
         self.available_instances += 1
         
+        # Update FSA if transitioning from Allocated to Free
         if self.available_instances == self.total_instances and self.fsa.current_state == 'Allocated':
             self.fsa.transition('release')
         
@@ -85,7 +108,8 @@ class Resource:
     def __repr__(self):
         return (
             f"Resource(rid='{self.rid}', state='{self.state}', "
-            f"available={self.available_instances}/{self.total_instances})"
+            f"available={self.available_instances}/{self.total_instances}, "
+            f"type='{self.resource_type}')"
         )
     
     def to_dict(self) -> dict:

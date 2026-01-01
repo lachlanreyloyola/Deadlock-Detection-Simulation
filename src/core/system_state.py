@@ -8,7 +8,11 @@ logger = logging.getLogger(__name__)
 
 
 class SystemState:
-    """Global system state controller using FSA"""
+    """
+    Global system state controller using FSA
+    
+    Tracks overall system health (Safe, Deadlock, Recovering)
+    """
     
     def __init__(self):
         """Initialize System FSA"""
