@@ -23,7 +23,7 @@
 
 ---
 
-## 🎯 Overview
+## Overview
 
 This project implements a comprehensive **deadlock detection and recovery system** for concurrent computing environments using **Finite State Automata (FSA)**. The system simulates concurrent processes competing for shared resources, detects deadlocks using Wait-For Graph (WFG) cycle detection, and automatically recovers using intelligent victim selection strategies.
 
@@ -36,28 +36,28 @@ This project implements a comprehensive **deadlock detection and recovery system
 
 ---
 
-## ✨ Features
+## Features
 
 ### Core Functionality
-- ✅ **FSA-Based Modeling**: Processes, resources, and system states modeled as finite state automata
-- ✅ **Deadlock Detection**: DFS-based cycle detection in Wait-For Graphs
-- ✅ **Automatic Recovery**: Multiple victim selection strategies (Priority, Cost, Time, Resource-based)
-- ✅ **Multiple Detection Strategies**: Immediate, Periodic, and CPU-triggered detection
-- ✅ **Performance Metrics**: Comprehensive tracking of detection latency, recovery time, and system overhead
+- **FSA-Based Modeling**: Processes, resources, and system states modeled as finite state automata
+- **Deadlock Detection**: DFS-based cycle detection in Wait-For Graphs
+- **Automatic Recovery**: Multiple victim selection strategies (Priority, Cost, Time, Resource-based)
+- **Multiple Detection Strategies**: Immediate, Periodic, and CPU-triggered detection
+- **Performance Metrics**: Comprehensive tracking of detection latency, recovery time, and system overhead
 
 ### User Interfaces
-- 🖥️ **CLI**: Interactive command-line interface
-- 📄 **Config Files**: JSON/YAML scenario definitions
-- 🌐 **Web GUI**: Modern web interface with real-time visualization
+- **CLI**: Interactive command-line interface
+- **Config Files**: JSON/YAML scenario definitions
+- **Web GUI**: Modern web interface with real-time visualization
 
 ### Analysis Tools
-- 📊 **Real-time Monitoring**: Live system state visualization
-- 📈 **Performance Analytics**: Detection and recovery metrics
-- 🔍 **FSA State History**: Complete transition history tracking
+- **Real-time Monitoring**: Live system state visualization
+- **Performance Analytics**: Detection and recovery metrics
+- **FSA State History**: Complete transition history tracking
 
 ---
 
-## 🏗️ System Architecture
+## System Architecture
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                  USER INTERFACES                         │
